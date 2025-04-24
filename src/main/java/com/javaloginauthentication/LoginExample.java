@@ -27,18 +27,14 @@ import org.apache.http.util.EntityUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
 class LoginExample {
 
-    static final Dotenv dotenv = Dotenv.load();
-
-    static final String AUTH_URL = dotenv.get("AUTH_URL");
-    static final String KEEP_ALIVE_URL = dotenv.get("KEEP_ALIVE_URL");
-    static final String UPDATE_TOKEN_URL = dotenv.get("UPDATE_TOKEN_URL");
-    static final String USER2 = dotenv.get("USERNAME2");
-    static final String IP_ADDRESS = dotenv.get("IPADDRESS");
-    static final String PASSWORD = dotenv.get("PASSWORD");
+    static final String AUTH_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/authorize";
+    static final String KEEP_ALIVE_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/keepalive";
+    static final String UPDATE_TOKEN_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/updateToken";
+    static final String USER2 = "Edilson";
+    static final String IP_ADDRESS = "192.168.1.175";
+    static final String PASSWORD = "Casa01++";
     static final String TOKEN = "token";
     static final String POST = "post";
     static final String PUT = "put";
@@ -62,7 +58,7 @@ class LoginExample {
         String firstResponseString = sendPostOrPut(AUTH_URL, firstLoginParams, POST);
         JSONObject firstLoginResponse = JSONObject.parseObject(firstResponseString);
         System.out.println(firstLoginResponse);
-        
+
         // Tentar login pela segunda vez
         String realm = firstLoginResponse.getString("realm");
         String randomKey = firstLoginResponse.getString("randomKey");
@@ -97,7 +93,7 @@ class LoginExample {
         System.out.println("Second response: " + secondResponseString);
 
         TOKEN_VALUE = secondResponse.getString(TOKEN);
-
+        PersonAddExample.token = TOKEN_VALUE;
         System.out.println(String.format("token is : %s", TOKEN_VALUE));
         System.out.println(String.format("duration is : %s", secondResponse.getString("duration")));
         System.out.println(String.format("secretKeyWithRsa is : %s", secondResponse.getString("secretKey")));
@@ -112,6 +108,8 @@ class LoginExample {
             System.exit(1);
         }
         // Passo 3: Mantém vivo (keep-alive) e atualiza o token
+
+        /* 
         while (true) {
             // Manda um heart (pulso) por 22 segundos
             Thread.sleep(22000);
@@ -139,7 +137,7 @@ class LoginExample {
                 }
             }
         }
-
+    */
     }
 
     static String sendPostOrPut(String url, Map<String, Object> params, String requestMode)

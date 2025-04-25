@@ -91,9 +91,20 @@ class LoginExample {
         System.out.println("Signature: " + signature);
         System.out.println("Second login payload: " + JSON.toJSONString(secondLoginParams));
         System.out.println("Second response: " + secondResponseString);
-
+        
         TOKEN_VALUE = secondResponse.getString(TOKEN);
+
+        //realizar a adição dos valores dinamicamente ao fazer login
         PersonAddExample.token = TOKEN_VALUE;
+        PersonAddExample.privateKeyWithBase64 = privateKeyWithBase64;
+        PersonAddExample.secretKeyWithRsa = secondResponse.getString("secretKey");
+        PersonAddExample.secretVectorWithRsa = secondResponse.getString("secretVector");
+        
+        MqConnectionExample.token = TOKEN_VALUE;
+        MqConnectionExample.privateKeyWithBase64 = privateKeyWithBase64;
+        MqConnectionExample.secretKeyWithRsa = secondResponse.getString("secretKey");
+        MqConnectionExample.secretVectorWithRsa = secondResponse.getString("secretVector");
+
         System.out.println(String.format("token is : %s", TOKEN_VALUE));
         System.out.println(String.format("duration is : %s", secondResponse.getString("duration")));
         System.out.println(String.format("secretKeyWithRsa is : %s", secondResponse.getString("secretKey")));

@@ -45,6 +45,10 @@ class PersonAddExample {
     // Attention: Tokens are updated every 22 minutes,Please use the latest
     // token,otherwise,the interface will respond 7000.
     static String token;
+    // This three params you can obtain from the LoginExample or your client.
+    static String secretKeyWithRsa;
+    static String secretVectorWithRsa;
+    static String privateKeyWithBase64;
 
     public static void addPerson() throws Exception {
         // Before start,read relevant API first,and this example is long,be patient
@@ -60,8 +64,8 @@ class PersonAddExample {
         baseInfoParams.put("source", "0");
         // general 8 random number
         baseInfoParams.put("personId", randomNumber(8));
-        baseInfoParams.put("firstName", "Andy");
-        baseInfoParams.put("lastName", "Lau");
+        baseInfoParams.put("firstName", "Steven");
+        baseInfoParams.put("lastName", "Rogers");
         // Gender: 0 = Unknown, 1 = Male, 2 = Female; 0 by default.
         baseInfoParams.put("gender", "1");
         // Person Group : We got it through Get the List of Person Groups interface.
@@ -78,21 +82,22 @@ class PersonAddExample {
 
         // adiciona o método para codificar imagem para base 64
         String faceImageBase64 = encodeImageToBase64(
-                "C:\\Users\\Ecoground Tecnologia\\Downloads\\JavaLoginAuth\\javaloginauthentication\\src\\main\\resources\\tony.jpg");
+                "C:\\Users\\Ecoground Tecnologia\\Downloads\\JavaLoginAuth\\javaloginauthentication\\src\\main\\resources\\steve.jpg");
         baseInfoParams.put("facePictures", Arrays.asList(faceImageBase64));
+
         param.put("baseInfo", baseInfoParams);
         /** Module 2: Additional Info */
         Map<String, Object> extensionInfoParams = new HashMap<>(8);
-        extensionInfoParams.put("nickName", "Andy");
-        extensionInfoParams.put("address", "No.1000, Jian'an Road, Tianzhong District, Runan, China");
+        extensionInfoParams.put("nickName", "Steve");
+        extensionInfoParams.put("address", "No.569, Leaman Place, Brooklyn Heights, New York, USA");
         extensionInfoParams.put("idType", "0");
         extensionInfoParams.put("idNo", "100101198012255310");
-        extensionInfoParams.put("birthday", "1980-12-25");
+        extensionInfoParams.put("birthday", "1912-07-04");
         // Region: Reference the API.
         extensionInfoParams.put("nationalityId", "51");
-        extensionInfoParams.put("companyName", "Dandelion Technology");
-        extensionInfoParams.put("position", "Engineer");
-        extensionInfoParams.put("department", "HR department");
+        extensionInfoParams.put("companyName", "Avengers");
+        extensionInfoParams.put("position", "Captain");
+        extensionInfoParams.put("department", "Shield department");
         param.put("extensionInfo", extensionInfoParams);
         /** Module 3: Residence Info */
         Map<String, Object> residentInfoParams = new HashMap<>(2);
@@ -293,10 +298,6 @@ class PersonAddExample {
      * @return
      */
     static String encryptPassWordWithAES(String password) {
-        // This three params you can obtain from the LoginExample or your client.
-        String secretKeyWithRsa = "Id+mkhquhJ2lCSKbqhYmZWPCP/nT+FH+C/tLfQeeCL7NoxqbkXqXKszo5dujusVewHCMRVQdgtmCWrSCAM1sNPLNtYl8Dh+oXpYKbykd+GzW1dc0tbkttiysRWempNh6SZ8HS5R1vacumZQrsIeok4EoRowDH+gqG7b+Ya09uuOwwoAZBQaJdtuZXoflhiWnQpNKNEOzv2vQZnO9G52lI4tu3rsFNVtqNSAl/VqlltKlL0vzfwfW3T6WccFoAHqeC33bArfU8nYVhRUdMgAwb6GYH3ncv/8u1DrS8RjSf/uKNFKinIyni5BGmpEkatfvzKWGaV/Ci/zMOZUiOClD0A==";
-        String secretVectorWithRsa = "ZtGENpbJPmcZ0ObtS2hmrVamOlbP6+WQPrafc3f8NzhelCz1qgM8mse62r+cosUnc8MmvpsRSxzMziOU3VvH9bK58fZ0J92L9Xj/LBstPSDmswM4JDay+8DS1re6qV0BbIFo4g/IXkV0imVzYBiq1CN5MX0JUKd+Zd9YAUf7MD5fKLMgZWtVwExnj00b8FJKly7SWa7NybnogMlLX4MSjeYj3TE4ofTiHI0Oz3m2SN3GcLdxN7rkLrTX4FxfDtHd87WNC417UzMAEWB9nIGEh8Ag6vcAl85YO4d/OPJFltf1hzuDCBuAqsr0G5ctHXijuiiYkCfHzRzX1QuuDsnWLw==";
-        String privateKeyWithBase64 = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCbHrGIrCBSG0RIg9RkyXy/isX2KTlSXmKjQGjfyPPYCMiZTb4qqimQTuEBtos+yejKUHQNHylBZiRCm6djgK4EOLJQMVQWqvjWDGfethsUwE+XrvXvC+XzrqFeeRMe6ms1QoWESlm+G0UbZjWOXNmXILUadOkMCCteMI7DDt0YrCSB1zgxpM/lpZ+EhudWsk0tz4jWfdS0AdXQA9KvM25GSTyD6tnxIfE+uhPX1w19bY1tcfDXDCPGlNl/gwvLnWSfhEP6ugoQ5QU27Cu4CW02RPwFAImommiGvS+JXJpbc9LdG2nzeTXaPpp/nfaRA3CSStOTzCiD7fNLb//mth1rAgMBAAECggEAcVFm2DUGF3Ub2O2VR1t56mNyYnWTDn0tCZ2P/4tJt1QTVwrYFUrhui4laZ708hWGHeXQIZXWCZSYgKA9FA95EFRqzvJ6P2T/Cz9c0fGuruYePuztdIf4oJ+9+snwEfGmB+5ko1O9Y4eAYJe2IB3sRt757i3h4YxGQjSu1ggRtGdCVChNaQ4Vn/ROpMji4BRRpM55DSdjR2AfFM0fC+66w3qce5uszYsSeKcX4R0hzu8pDwa23kJZqwYWi/UjlLE1cD8PzHG4K7294iIU1md6U7qHTNBGG0ReZywwi1UC6XvvWxymC8Tfr9u4QXlJXGpoT1PO0dGVNPN/GI6VAkJYIQKBgQD50vA56LGynAtruduD1XwSmYJHHNVaUPnJGARhoFB5a9spj8OnKfbFOIH17BobKpgRjSdmDgux9qoo2Yz0E8uToKQbM/zmh/L8/TNp1OMCY2VT7FIChZ+T7dopyNe4qFnMB3O3DmBpqkkbThgcH0mI3CaqqaZFV2J6Gg+nGUh9VwKBgQCe9GayOEpohYtSxySUB8AXJ158auGwsva7sZ94y5Ex4mwFXC+1dKxsUeI3q+4101pOmy+VFtmEio4MM68Kz5l3q0lOKo0ePoC/3lmP8T5TaE+nB871cKZhH2g7ayYeQj2BgNPyExaOAb3M5E1D7HSERESNU0rJtUHEoVC0FZ5ADQKBgQCF9qYY932qYGEDcFOVGzqAIs8oYP7LgpafTgCzdSsSIVMRs2TgU/FfCpEuFWBeZvXKm52f7TI6SSIv65DZJXBKBp9ZcwRPfmE/ZmtWefENS81/Nj832P2cbrRJKcj73VLhxLE5XT04DDdNrA/jrKda+2rEo1pk3poRDb6NBVLI2wKBgCBANEn6s9YrKk58S0ahn+7StRAHW41PclI4wsNugiId747S2nc1mfpMTtq+zpErNcp3IBtezHlg51tAbUaDQn8OSMxMQ9+cDOFhCsjyyJOBuY+JPQt9dLSF+876eXxwMiyBZ/9Ysh3T6p+UvryGUEm51DLccHMmjJaJqGcxb69NAoGAWDtK44FSwtveNoA3qHGIAbuzKo/Us8w5PeRqx4mXMuxPDtl6ViBW67e8rBeIGVs03ojpWupwELMg06FezCoQQxpy+NdQRm4itzo6ch6QB4esUpTZaPxzMB1tkLjvcHG8zNZ6/E7qLWW+qf0c7FlvhL4OnuH1Gz41lmHBjrBc9to=";
         try {
             byte[] privateKey = Base64.getDecoder().decode(privateKeyWithBase64);
             String secretKey = decryptRSAByPrivateKey(secretKeyWithRsa, privateKey);

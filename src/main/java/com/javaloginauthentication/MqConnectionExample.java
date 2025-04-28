@@ -40,7 +40,7 @@ import com.alibaba.fastjson.JSONObject;
 
 public class MqConnectionExample {
     static final String MQ_URL_PRFIX = "ssl://%s";
-    static final String MQ_CONFIG_URL = "http://192.168.1.175:8000/brms/api/v1.0/BRM/Config/GetMqConfig?token=%s";
+    static final String MQ_CONFIG_URL = "http://192.168.1.175:8000/brms/api/v1.0/BRM/Config/GetMqConfig?token=%s"; 
     static final String TOPIC = "topic";
     static final String QUEUE = "queue";
     // Step1: Get the "SecretKey" and "SecretVector",used to decrypt the password

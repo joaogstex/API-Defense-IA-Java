@@ -185,7 +185,7 @@ class PersonAddExample {
         Map<String, Object> vehicleMap = new HashMap<>(8);
         vehicleMap.put("entranceEndTime", "-1");
         vehicleMap.put("entranceStartTime", "-1");
-        vehicleMap.put("plateNo", "ZHE" + randomNumber(3));
+        vehicleMap.put("plateNo", "ZHE" + randomNumber(4));
         // Vehicle color: Reference the API.
         vehicleMap.put("vehicleColor", "1");
         vehicleMap.put("entranceLongTerm", "1");

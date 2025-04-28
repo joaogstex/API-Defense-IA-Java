@@ -32,9 +32,9 @@ class LoginExample {
     static final String AUTH_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/authorize";
     static final String KEEP_ALIVE_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/keepalive";
     static final String UPDATE_TOKEN_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/updateToken";
-    static final String USER2 = "Edilson";
+    static final String USER2 = "Gustavo";
     static final String IP_ADDRESS = "192.168.1.175";
-    static final String PASSWORD = "Casa01++";
+    static final String PASSWORD = "Meunomesilva1@";
     static final String TOKEN = "token";
     static final String POST = "post";
     static final String PUT = "put";

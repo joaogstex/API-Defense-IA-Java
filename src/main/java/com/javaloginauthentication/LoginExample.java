@@ -32,6 +32,7 @@ class LoginExample {
     static final String AUTH_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/authorize";
     static final String KEEP_ALIVE_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/keepalive";
     static final String UPDATE_TOKEN_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/updateToken";
+    static final String UNAUTH_URL = "http://192.168.1.175:8000/brms/api/v1.0/accounts/unauthorize";
     static final String USER2 = "Gustavo";
     static final String IP_ADDRESS = "192.168.1.175";
     static final String PASSWORD = "Meunomesilva1@";
@@ -48,7 +49,6 @@ class LoginExample {
 
     public static void login() throws Exception {
         // Tentar logar pela primeira vez
-
         // Parâmetros do primeiro login
         Map<String, Object> firstLoginParams = new HashMap<>(3);
         firstLoginParams.put("userName", USER2);
@@ -153,30 +153,37 @@ class LoginExample {
 
     static String sendPostOrPut(String url, Map<String, Object> params, String requestMode)
             throws ClientProtocolException, IOException {
+
         if (!requestMode.equals(POST) && !requestMode.equals(PUT)) {
             return null;
         }
+
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpEntityEnclosingRequestBase httpRequest = null;
+
         if (requestMode.equals(POST)) {
             httpRequest = new HttpPost(url);
         } else if (requestMode.equals(PUT)) {
             httpRequest = new HttpPut(url);
         }
+
         StringEntity entity = new StringEntity(JSON.toJSONString(params), "UTF-8");
         httpRequest.setEntity(entity);
         System.out.println("Chaves no params: " + params.keySet());
         httpRequest.setHeader("Content-Type", "application/json;charset=UTF-8");
+
         if (params.containsKey(TOKEN) && params.get(TOKEN) != null) {
             httpRequest.setHeader("X-Subject-Token", params.get(TOKEN).toString());
             System.out.println("Caiu no header"); // debug
         } else {
             System.out.println("TOKEN está ausente ou nulo no par");
         }
+
         CloseableHttpResponse response = httpClient.execute(httpRequest);
         HttpEntity responseEntity = response.getEntity();
         // Para evitar um código bagunçado, codifica os dados de resposta em UTF-8
         String reply = EntityUtils.toString(responseEntity, "UTF-8");
+
         // Finalmente disponibiliza recursos
         if (httpClient != null) {
             httpClient.close();
@@ -210,5 +217,13 @@ class LoginExample {
         keyPairGen.initialize(2048, new SecureRandom());
         KeyPair keyPair = keyPairGen.generateKeyPair();
         return keyPair;
+    }
+
+    //função para cancelamento de autenticação com base na documentação da API
+    static void logout() throws Exception {
+        Map<String, Object> logoutParams = new HashMap<>();
+        logoutParams.put("token", TOKEN_VALUE);
+        String response = sendPostOrPut(UNAUTH_URL, logoutParams, POST);
+        System.out.println("Logout response: " + response);
     }
 }

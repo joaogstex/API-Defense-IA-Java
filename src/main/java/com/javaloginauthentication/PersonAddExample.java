@@ -16,6 +16,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -34,7 +37,9 @@ class PersonAddExample {
     static final String PAGE_DATA = "pageData";
     static final Integer SUCCESS_CODE = 1000;
     static final Integer RETURN_CODE_DATA_NOT_EXIST = 1007;
+
     //Quando há erro o código retornado é 7000
+    
     static final String URL_PRFIX = "http://192.168.1.175:8000";
     static final String PERSON_ADD_URL = URL_PRFIX + "/obms/api/v1.1/acs/person";
     static final String PERSON_GROUP_TREE_URL = URL_PRFIX + "/obms/api/v1.1/acs/person-group/list";
@@ -45,6 +50,7 @@ class PersonAddExample {
     // Attention: Tokens are updated every 22 minutes,Please use the latest
     // token,otherwise,the interface will respond 7000.
     static String token;
+
     // This three params you can obtain from the LoginExample or your client.
     static String secretKeyWithRsa;
     static String secretVectorWithRsa;
@@ -57,82 +63,100 @@ class PersonAddExample {
         // You can optionally assign values to your parameters, because some parameters
         // can be empty.
         Map<String, Object> param = new HashMap<>(8);
+
         /** Module 1: Basic Info */
         Map<String, Object> baseInfoParams = new HashMap<>(10);
+
         // Person source, 0 = People management list, 1 = Access control group, 2 = Face
         // comparison group, 3 = Entrance and exit vehicle group; 0 by default
         baseInfoParams.put("source", "0");
+
         // general 8 random number
         baseInfoParams.put("personId", randomNumber(8));
-        baseInfoParams.put("firstName", "Steven");
-        baseInfoParams.put("lastName", "Rogers");
+        baseInfoParams.put("firstName", "Nicholas");
+        baseInfoParams.put("lastName", "Fury");
+
         // Gender: 0 = Unknown, 1 = Male, 2 = Female; 0 by default.
-        baseInfoParams.put("gender", "1");
+        baseInfoParams.put("gender", "0");
+
         // Person Group : We got it through Get the List of Person Groups interface.
         List<TreeNode> treeNodeList = deserializeData(sendPostOrGet(PERSON_GROUP_TREE_URL, null, GET), TreeNode.class,
                 RESULT,
                 "Person Group");
+
         // Select your own personnel group node,we only use the first here.
         baseInfoParams.put("orgCode", treeNodeList.get(0).getOrgCode());
         baseInfoParams.put("email", "teste" + randomNumber(4) + "@email.com");
         baseInfoParams.put("tel", "13800001234");
         baseInfoParams.put("remark", "");
-        // Attention:The picture information is encoded by Base64,some characters are
-        // omitted here.
 
+        // Attention:The picture information is encoded by Base64,some characters are omitted here.
         // adiciona o método para codificar imagem para base 64
-        String faceImageBase64 = encodeImageToBase64(
-                "C:\\Users\\Ecoground Tecnologia\\Downloads\\JavaLoginAuth\\javaloginauthentication\\src\\main\\resources\\steve.jpg");
+        String folderPath = "C:\\Users\\Ecoground Tecnologia\\Downloads\\JavaLoginAuth\\javaloginauthentication\\src\\main\\resources";
+        String personIdentifier = (String) baseInfoParams.get("firstName");
+        String faceImageBase64 = findAndEncodeImageToBase64(folderPath, personIdentifier);
+        
         baseInfoParams.put("facePictures", Arrays.asList(faceImageBase64));
 
         param.put("baseInfo", baseInfoParams);
+
         /** Module 2: Additional Info */
         Map<String, Object> extensionInfoParams = new HashMap<>(8);
-        extensionInfoParams.put("nickName", "Steve");
-        extensionInfoParams.put("address", "No.569, Leaman Place, Brooklyn Heights, New York, USA");
+        extensionInfoParams.put("nickName", "Nick");
+        extensionInfoParams.put("address", "No.569, Leaman Place, Brooklyn Heights, New York, United States of America");
         extensionInfoParams.put("idType", "0");
         extensionInfoParams.put("idNo", "100101198012255310");
-        extensionInfoParams.put("birthday", "1912-07-04");
+        extensionInfoParams.put("birthday", "1950-07-04");
+
         // Region: Reference the API.
         extensionInfoParams.put("nationalityId", "51");
         extensionInfoParams.put("companyName", "Avengers");
         extensionInfoParams.put("position", "Captain");
         extensionInfoParams.put("department", "Shield department");
         param.put("extensionInfo", extensionInfoParams);
+
         /** Module 3: Residence Info */
         Map<String, Object> residentInfoParams = new HashMap<>(2);
         residentInfoParams.put("sipId", "02#1#" + randomNumber(4));
+
         // Video intercom householder or not, 0 = No, 1 = Yes; 0 by default.
         residentInfoParams.put("houseHolder", "1");
         residentInfoParams.put("vdpUser", "0");
         param.put("residentInfo", residentInfoParams);
+
         /** Module 4: Authentication Info */
         Map<String, Object> authenticationInfoParams = new HashMap<>(8);
+
         // Combination unlocking password, AES encryption.
         authenticationInfoParams.put("combinationPassword", encryptPassWordWithAES("123456"));
         List<Map<String, Object>> cardList = new ArrayList<>(1);
         Map<String, Object> cardMap = new HashMap<>(3);
         cardMap.put("cardNo", generateRandomCardHex());
+
         // cardMap.put("mainFlag", "1");
         cardMap.put("duressFlag", "0");
         cardList.add(cardMap);
         authenticationInfoParams.put("cards", cardList);
         authenticationInfoParams.put("endTime", "1924963200");
         authenticationInfoParams.put("startTime", "1609430400");
+
         // Fingerprint list,limit three.
         List<Map<String, Object>> fingerPritList = new ArrayList<>(1);
         Map<String, Object> fingerprintMap = new HashMap<>(3);
-        // Attention:The fingerprint information is encoded by Base64,some characters
-        // are omitted here.
+
+        // Attention:The fingerprint information is encoded by Base64,some characters are omitted here.
         fingerprintMap.put("fingerprint", "xR9pAOCGm+UQSbjE ..... AAdDR4QDxsAAOva");
         fingerprintMap.put("name", "fingerprint01");
+
         // Duress fingerprint or not, 0 = No, 1 = Yes
         fingerprintMap.put("duressFlag", "0");
         fingerPritList.add(fingerprintMap);
         authenticationInfoParams.put("fingerprints", fingerPritList);
         param.put("authenticationInfo", authenticationInfoParams);
+
         /** Module 5: Access Control Permissions */
         Map<String, Object> accessInfoParams = new HashMap<>(5);
+
         // get passageRuleIds
         System.out.println("🔎 Testando chamada para PASSAGE_RULE_URL");
         String passageRuleResponse = sendPostOrGet(PASSAGE_RULE_URL, null, GET);
@@ -150,18 +174,22 @@ class PersonAddExample {
         
         // deixa como null apenas para conseguir rodar sem erro de regra
         accessInfoParams.put("passageRuleIds", null);
+
         // Number of times visitors can unlock; 200 by default.
         accessInfoParams.put("guestUseTimes", "200");
+
         // Access control person type, 0 = Normal, 1 = Blocklist, 2 = Visitor, 3=
         // Patrol, 4 = VIP, 5 = Others; 0 by default.
         accessInfoParams.put("accessType", "2");
         param.put("accessInfo", accessInfoParams);
+
         /** Module 6: Face Comparison */
         Map<String, Object> faceComparisonInfoParams = new HashMap<>(2);
+
         // Enable face comparison group, 0 = No, 1 = Yes.
         faceComparisonInfoParams.put("enableFaceComparisonGroup", "1");
-        // Face comparison group ID: We got it through [Get Face Watch List in pages]
-        // interface.
+
+        // Face comparison group ID: We got it through [Get Face Watch List in pages interface.
         System.out.println("🔎 Testando chamada para FACE_REPOSITORY_URL");
         String faceRepoResponse = sendPostOrGet(FACE_REPOSITORY_URL, null, GET);
         System.out.println("Resposta da API de grupos faciais: \n" + faceRepoResponse);
@@ -176,9 +204,9 @@ class PersonAddExample {
             System.err.println("⚠ Nenhum grupo facial encontrado.");
         }
         
-        // deixa como null apenas para conseguir rodar sem erro de regra
         faceComparisonInfoParams.put("faceComparisonGroupId", null);
         param.put("faceComparisonInfo", faceComparisonInfoParams);
+
         /** Module 7: Vehicle Info & Entrance and Exit Vehicle Group */
         Map<String, Object> entranceInfoParams = new HashMap<>(4);
         List<Map<String, Object>> vehicles = new ArrayList<>(1);
@@ -186,9 +214,11 @@ class PersonAddExample {
         vehicleMap.put("entranceEndTime", "-1");
         vehicleMap.put("entranceStartTime", "-1");
         vehicleMap.put("plateNo", "ZHE" + randomNumber(4));
+
         // Vehicle color: Reference the API.
         vehicleMap.put("vehicleColor", "1");
         vehicleMap.put("entranceLongTerm", "1");
+
         // Vehicle entrance and exit group ID: We got it through [Get the List of
         // Entrance and Exit Groups of Vehicles in Pages] interface.
         System.out.println("🔎 Testando chamada para ENTRANCE_GROUP_URL");
@@ -208,16 +238,25 @@ class PersonAddExample {
         // deixa como null apenas para conseguir rodar sem erro de regra
         vehicleMap.put("entranceGroupIds", null);
         vehicleMap.put("remark", "");
+
         // Vehicle brand: Reference the API.
+        //value 47 - testar se posso mudar
         vehicleMap.put("vehicleBrand", "47");
         vehicles.add(vehicleMap);
         entranceInfoParams.put("vehicles", vehicles);
+        double randomNumber = Math.random();
+        int roundedNumber = (randomNumber < 0.5) ? 0 : 1;
+
         // Enable vehicle entrance and exit group, 0 = No, 1 = Yes.
-        entranceInfoParams.put("enableEntranceGroup", "1");
-        entranceInfoParams.put("parkingSpaceNum", "0");
+        //1
+        entranceInfoParams.put("enableEntranceGroup", roundedNumber);
+        //0 e 0  
+        entranceInfoParams.put("parkingSpaceNum", roundedNumber);
+
         // Enable parking space, 0 = No, 1 = Yes.
-        entranceInfoParams.put("enableParkingSpace", "0");
+        entranceInfoParams.put("enableParkingSpace", roundedNumber);
         param.put("entranceInfo", entranceInfoParams);
+
         // Last: Send a POST request with the param.If you get the return code of 1000,
         // it means you succeed.
         String responseString = sendPostOrGet(PERSON_ADD_URL, param, POST);
@@ -266,21 +305,27 @@ class PersonAddExample {
         if (requestMode.equals(POST)) {
             HttpEntityEnclosingRequestBase httpRequest = new HttpPost(realUrl);
             StringEntity entity = new StringEntity(JSON.toJSONString(params), "UTF-8");
+
             httpRequest.setEntity(entity);
             httpRequest.setHeader("Content-Type", "application/json;charset=UTF-8");
             httpRequest.setHeader("X-Subject-Token", token);
+            
             if (params.containsKey(TOKEN)) {
                 httpRequest.setHeader("X-Subject-Token", params.get(TOKEN).toString());
             }
             httpResponse = httpClient.execute(httpRequest);
         } else if (requestMode.equals(GET)) {
             HttpGet httpGet = new HttpGet(realUrl);
+
             httpGet.setHeader("X-Subject-Token", token);
             httpResponse = httpClient.execute(httpGet);
         }
+
         HttpEntity responseEntity = httpResponse.getEntity();
+
         // In order to avoid messy code,encode the response data in UTF-8.
         String reply = EntityUtils.toString(responseEntity, "UTF-8");
+
         // Release resources finally.
         if (httpClient != null) {
             httpClient.close();
@@ -320,12 +365,14 @@ class PersonAddExample {
      */
     static String encryptWithAES7(String text, String aesKey, String aesVector) throws Exception {
         SecretKey keySpec = new SecretKeySpec(aesKey.getBytes("UTF-8"), "AES");
+
         // If your program run with an exception :"Cannot find any provider supporting
         // AES/CBC/PKCS7Padding",you can replace "PKCS7Padding" with "PKCS5Padding".
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         IvParameterSpec iv = new IvParameterSpec(aesVector.getBytes("UTF-8"));
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv);
         byte[] encrypted = cipher.doFinal(text.getBytes("UTF-8"));
+
         return parseByte2HexStr(encrypted);
     }
 
@@ -337,6 +384,7 @@ class PersonAddExample {
      */
     static String parseByte2HexStr(byte buf[]) {
         StringBuffer sb = new StringBuffer();
+        
         for (int i = 0; i < buf.length; i++) {
             String hex = Integer.toHexString(buf[i] & 0xFF);
             if (hex.length() == 1) {
@@ -361,8 +409,10 @@ class PersonAddExample {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         Key privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] result = null;
+
         for (int i = 0; i < data.length; i += 256) {
             int to = (i + 256) < data.length ? (i + 256) : data.length;
             byte[] temp = cipher.doFinal(Arrays.copyOfRange(data, i, to));
@@ -375,6 +425,7 @@ class PersonAddExample {
         byte[] result = null;
         int len1 = 0;
         int len2 = 0;
+
         if (null != bytes1) {
             len1 = bytes1.length;
         }
@@ -406,14 +457,18 @@ class PersonAddExample {
      */
     static <T> List<T> deserializeData(String responseString, Class<T> clazz, String fieldName, String businessName)
             throws Exception {
+
         if (responseString == null || !responseString.trim().startsWith("{")) {
             throw new IOException("❌ A resposta da API não está em formato JSON:\n" + responseString);
         }
+        
         JSONObject jsonObject = JSONObject.parseObject(responseString);
         Integer code = (Integer) jsonObject.get("code");
+
         if (code == null) {
             throw new IOException("❌ A resposta da API não contém o campo 'code'. Resposta completa:\n" + responseString);
         }
+        
         if (code.compareTo(SUCCESS_CODE) == 0) {
             Object dataObject = jsonObject.getJSONObject("data").get(fieldName);
             if (dataObject != null) {
@@ -780,17 +835,35 @@ class PersonAddExample {
         }
     }
 
+    public static String findAndEncodeImageToBase64(String folderPath, String personIdentifier) throws IOException {
+        Optional<Path> matchingImagePath = Files.list(Paths.get(folderPath))
+        .filter(path -> path.toString().endsWith(".jpg") || path.toString().endsWith(".png"))
+        .filter(path -> path.getFileName().toString().toLowerCase().contains(personIdentifier.toLowerCase()))
+        .findFirst();
+
+        if (matchingImagePath.isPresent()) {
+            byte[] data = Files.readAllBytes(matchingImagePath.get());
+            return Base64.getEncoder().encodeToString(data);
+        } else {
+            throw new IOException("Nenhuma imagem encontrada para adicionar ao identificador: " + personIdentifier);
+        }
+    }
+
     // método para codificação da imagem no resources para base64
+
+    /* 
     public static String encodeImageToBase64(String imagePath) throws IOException {
         java.nio.file.Path path = java.nio.file.Paths.get(imagePath);
         byte[] data = java.nio.file.Files.readAllBytes(path);
         return Base64.getEncoder().encodeToString(data);
     }
+    */
 
     //gera dinamicamente um número de cartão para não colidir com os cadastrados
     public static String generateRandomCardHex() {
         Random rand = new Random();
         StringBuilder hex = new StringBuilder();
+
         for (int i = 0; i < 8; i++) { // 8 dígitos hexadecimais
             hex.append(Integer.toHexString(rand.nextInt(16)).toUpperCase());
         }

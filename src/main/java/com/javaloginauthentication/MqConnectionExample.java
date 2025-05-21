@@ -43,34 +43,38 @@ public class MqConnectionExample {
     static final String MQ_CONFIG_URL = "http://192.168.1.175:8000/brms/api/v1.0/BRM/Config/GetMqConfig?token=%s"; 
     static final String TOPIC = "topic";
     static final String QUEUE = "queue";
-    // Step1: Get the "SecretKey" and "SecretVector",used to decrypt the password
-        // later.
-        // You can obtain the value of
-        // secretKeyWithRsa,secretVectorWithRsa,privateKeyWithBase64 from
-        // "LoginExample".
+    // Step1: Get the "SecretKey" and "SecretVector",used to decrypt the password later.
+    // You can obtain the value of
+    // secretKeyWithRsa,secretVectorWithRsa,privateKeyWithBase64 from
+    // "LoginExample".
     static String secretKeyWithRsa;
     static String secretVectorWithRsa;
     static String privateKeyWithBase64;
+
     // Step2: Call the "Get the MQ configuration" interface,in order to obtain the
-        // MQ password.
-        // You can obtain the value of token from "LoginExample".
+    // MQ password.
+    // You can obtain the value of token from "LoginExample".
     static String token;
 
     public static void mqConnection() throws Exception {
         byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyWithBase64);
+
         // Decrypt "SecretKey" and "SecretVector".
         String secretKey = decryptRSAByPrivateKey(secretKeyWithRsa, privateKeyBytes);
         String secretVector = decryptRSAByPrivateKey(secretVectorWithRsa, privateKeyBytes);
 
         String mqConfigResponseString = sendPost(String.format(MQ_CONFIG_URL, token), null);
         JSONObject mqConfigResponse = JSONObject.parseObject(mqConfigResponseString).getJSONObject("data");
+        
         // Now,this password is encrypted by AES.Decrypt it with the "SecretKey" and
         // "SecretVector" we have got in Step1.
         String userName = mqConfigResponse.getString("userName");
         String userPasswordWithAes = mqConfigResponse.getString("password");
         String mqUrlAddr = mqConfigResponse.getString("addr");
+        
         // Decrypt the "Password".
         String userPassword = decryptWithAES7(userPasswordWithAes, secretKey, secretVector);
+        
         // Step3: Initialize the MQ connection information,and start the message
         // listening.
         // Replace it with a queueName or a topicName which you would listened.
@@ -91,9 +95,11 @@ public class MqConnectionExample {
      */
     static void listenMqMessage(String mqUrl, String userName, String passWord, String messageName, String messageType)
             throws Exception {
+
         if (!messageType.equals(TOPIC) && !messageType.equals(QUEUE)) {
             return;
         }
+
         CustomerMqFactory factory = new CustomerMqFactory();
         factory.setUserName(userName);
         factory.setTrustStore("");
@@ -103,12 +109,15 @@ public class MqConnectionExample {
         connection.start();
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         MessageConsumer consumer;
+        
         if (messageType.equals(TOPIC)) {
             consumer = session.createConsumer(new ActiveMQTopic(messageName));
         } else {
             consumer = session.createConsumer(new ActiveMQQueue(messageName));
         }
+        
         System.out.println("Start listening...");
+       
         consumer.setMessageListener((message) -> {
             TextMessage textMessage = (TextMessage) message;
             try {
@@ -132,6 +141,7 @@ public class MqConnectionExample {
         if (params == null) {
             params = new HashMap<>(0);
         }
+       
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
         StringEntity entity = new StringEntity(JSON.toJSONString(params), "UTF-8");
@@ -139,6 +149,7 @@ public class MqConnectionExample {
         httpPost.setHeader("Content-Type", "application/json;charset=UTF-8");
         CloseableHttpResponse response = httpClient.execute(httpPost);
         HttpEntity responseEntity = response.getEntity();
+        
         // In order to avoid messy code,encode the response data in UTF-8.
         String reply = EntityUtils.toString(responseEntity, "UTF-8");
         // Release resources finally.
@@ -165,8 +176,10 @@ public class MqConnectionExample {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         Key privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+        
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] result = null;
+        
         for (int i = 0; i < data.length; i += 256) {
             int to = (i + 256) < data.length ? (i + 256) : data.length;
             byte[] temp = cipher.doFinal(Arrays.copyOfRange(data, i, to));
@@ -208,6 +221,7 @@ public class MqConnectionExample {
      */
     static String decryptWithAES7(String text, String aesKey, String aesVector) throws Exception {
         SecretKey keySpec = new SecretKeySpec(aesKey.getBytes("UTF-8"), "AES");
+        
         // If your program run with an exception :"Cannot find any provider supporting
         // AES/CBC/PKCS7Padding",you can replace "PKCS7Padding" with "PKCS5Padding".
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -215,6 +229,7 @@ public class MqConnectionExample {
         cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
         byte[] encrypted = parseHexStr2Byte(text);
         byte[] originalPassByte = cipher.doFinal(encrypted);
+        
         return new String(originalPassByte, "UTF-8");
     }
 
@@ -222,7 +237,9 @@ public class MqConnectionExample {
         if (hexStr.length() < 1) {
             return null;
         }
+
         byte[] result = new byte[hexStr.length() / 2];
+        
         for (int i = 0; i < hexStr.length() / 2; i++) {
             int high = Integer.parseInt(hexStr.substring(i * 2, i * 2 + 1), 16);
             int low = Integer.parseInt(hexStr.substring(i * 2 + 1, i * 2 + 2), 16);
